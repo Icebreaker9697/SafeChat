@@ -24,13 +24,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void sendRequestButton(View v){
-        String url = "http://www.google.com";
+        String url = "http://10.0.2.2:8080/";
 
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
                 //Display the first 500 characters of the response string
-                textView.setText("Response is: " + response.substring(0, 500));
+                textView.setText("Response is: " + response);
             }
         }, new Response.ErrorListener() {
             @Override

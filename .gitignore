@@ -1,10 +1,11 @@
 application.properties
+ServerInfo.java
 
 # General
 .DS_Store
 
 # Built application files
-*.apk
+*.apjava
 *.ap_
 *.aab
 

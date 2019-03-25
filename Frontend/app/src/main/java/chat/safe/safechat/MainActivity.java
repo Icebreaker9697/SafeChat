@@ -23,7 +23,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         TextView signupText = findViewById(R.id.tv_signup);
-        String text="Sign Up";
+        String text = getString(R.string.signup);
         SpannableString content = new SpannableString(text);
         content.setSpan(new UnderlineSpan(), 0, text.length(), 0);
         signupText.setText(content);

@@ -1,6 +1,8 @@
 package chat.safe.safechat;
 
 import android.content.Context;
+import android.content.ContextWrapper;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.util.LruCache;
 
@@ -9,11 +11,12 @@ import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.Volley;
 
+
 /**
  * Created by Peter on 3/21/19.
  */
 
-public class RequestHandler {
+public class RequestHandler{
     private static RequestHandler instance;
     private RequestQueue requestQueue;
     private ImageLoader imageLoader;

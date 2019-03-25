@@ -2,15 +2,15 @@ package chat.safe.safechat;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.SpannableString;
+import android.text.style.UnderlineSpan;
 import android.view.View;
 import android.widget.TextView;
 
 import com.android.volley.Request;
-import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -20,7 +20,22 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        textView = (TextView) findViewById(R.id.textView);
+
+        TextView signupText = findViewById(R.id.tv_signup);
+        String text="Sign Up";
+        SpannableString content = new SpannableString(text);
+        content.setSpan(new UnderlineSpan(), 0, text.length(), 0);
+        signupText.setText(content);
+
+        textView = (TextView) findViewById(R.id.centerAnchor);
+    }
+
+    public void loginHandler(View v){
+
+    }
+
+    public void signupHandler(View v){
+        
     }
 
     public void sendRequestButton(View v){

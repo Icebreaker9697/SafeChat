@@ -1,5 +1,6 @@
 package chat.safe.safechat;
 
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.SpannableString;
@@ -35,7 +36,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void signupHandler(View v){
-        
+        Intent intent = new Intent(this, RegisterActivity.class);
+        startActivity(intent);
     }
 
     public void sendRequestButton(View v){

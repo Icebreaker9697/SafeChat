@@ -15,6 +15,12 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 
+import static chat.safe.safechat.RSACipher.decryptWithPrivate;
+import static chat.safe.safechat.RSACipher.decryptWithPublic;
+import static chat.safe.safechat.RSACipher.encryptWithPrivate;
+import static chat.safe.safechat.RSACipher.encryptWithPublic;
+import static chat.safe.safechat.RSACipher.generateKeyPair;
+
 public class MainActivity extends AppCompatActivity {
 
     TextView textView;
@@ -59,5 +65,53 @@ public class MainActivity extends AppCompatActivity {
         });
 
         RequestHandler.getInstance(this).addToRequestQueue(stringRequest);
+    }
+
+    public void testButton(View v){
+        String msg = "Hello";
+
+        String[] keys = generateKeyPair();
+
+        String publicKey = keys[0];
+        String privateKey = keys[1];
+
+        System.out.println("Public key: " + publicKey);
+        System.out.println("Private key: " + privateKey);
+        System.out.println();
+        System.out.println();
+
+        String encryptedWithPublicKey = encryptWithPublic(publicKey, msg);
+        System.out.println("Encrypted With Public Key: " + encryptedWithPublicKey);
+        System.out.println();
+
+        String decryptedWithPrivateKey = decryptWithPrivate(privateKey, encryptedWithPublicKey);
+        System.out.println("Decrypted With Private Key: " + decryptedWithPrivateKey);
+        System.out.println();
+        System.out.println();
+
+        String encryptedWithPrivateKey = encryptWithPrivate(privateKey, msg);
+        System.out.println("Encrypted With Private Key: " + encryptedWithPrivateKey);
+        System.out.println();
+
+        String decryptedWithPublicKey = decryptWithPublic(publicKey, encryptedWithPrivateKey);
+        System.out.println("Decrypted with Public Key: " + decryptedWithPublicKey);
+    }
+
+    public void testHash(View v){
+        String pass = "qwertyuiop";
+        System.out.println("Set password is " + pass);
+        System.out.println();
+
+        String hash = Hasher.generateStrongPasswordHash(pass);
+        System.out.println("Hash generated from pass is: " + hash);
+        System.out.println();
+
+        String check1 = "qwertyuiop";
+        boolean isSamePass1 = Hasher.validatePassword(check1, hash);
+        System.out.println("Does " + check1 + "pass? " + isSamePass1);
+
+        String check2 = "qwertyuio";
+        boolean isSamePass2 = Hasher.validatePassword(check2, hash);
+        System.out.println("Does " + check2 + "pass? " + isSamePass2);
     }
 }

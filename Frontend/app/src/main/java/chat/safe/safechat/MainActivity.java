@@ -9,6 +9,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.Response;
@@ -40,7 +41,33 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void loginHandler(View v){
+        EditText etUsername = (EditText) findViewById(R.id.et_username);
+        EditText etPassword = (EditText) findViewById(R.id.et_password);
 
+        String username = etUsername.getText().toString();
+        String password = etPassword.getText().toString();
+
+        final TextView tv_error = (TextView) findViewById(R.id.tv_loginError);
+
+        String url = ServerInfo.IP + "/demo/login?username=" + username + "&enteredPassword=" + password;
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                //Display the first 500 characters of the response string
+                if(response.equals("Success")){
+                    Toast.makeText(getApplicationContext(),"Logged in!",Toast.LENGTH_SHORT).show();
+                } else {
+                    tv_error.setText(response);
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                tv_error.setText("Error contacting the server!");
+            }
+        });
+
+        RequestHandler.getInstance(this).addToRequestQueue(stringRequest);
     }
 
     public void signupHandler(View v){
@@ -107,11 +134,11 @@ public class MainActivity extends AppCompatActivity {
         System.out.println();
 
         String check1 = "qwertyuiop";
-        boolean isSamePass1 = Hasher.validatePassword(check1, hash);
-        System.out.println("Does " + check1 + "pass? " + isSamePass1);
+       // boolean isSamePass1 = Hasher.validatePassword(check1, hash);
+        //System.out.println("Does " + check1 + "pass? " + isSamePass1);
 
         String check2 = "qwertyuio";
-        boolean isSamePass2 = Hasher.validatePassword(check2, hash);
-        System.out.println("Does " + check2 + "pass? " + isSamePass2);
+        //boolean isSamePass2 = Hasher.validatePassword(check2, hash);
+        //System.out.println("Does " + check2 + "pass? " + isSamePass2);
     }
 }

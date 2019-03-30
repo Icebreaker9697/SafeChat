@@ -18,25 +18,34 @@ public class MainController{
 	private UserRepository userRepository;
 
 	@GetMapping(path="/add") //Map ONLY GET Requests
-	public @ResponseBody String addNewUser(@RequestParam String username, @RequestParam String passHash){
+	public @ResponseBody String addNewUser(@RequestParam String username, @RequestParam String passHash, @RequestParam String userPublicKey, @RequestParam String userPrivateKey){
+
 		User u = userRepository.findByUsername(username);
+
 		if(u != null) {
 			return "User with that username already exists!";
 		}
+
 		User n = new User();
 		n.setUsername(username);
 		n.setPassHash(passHash);
+		n.setUserPublicKey(userPublicKey);
+		n.setUserPrivateKey(userPrivateKey);
+
 		userRepository.save(n);
 		return "Success";
 	}
 	
 	@GetMapping(path="/login") //Map ONLY GET Requests
-	public @ResponseBody String login(@RequestParam String username, @RequestParam String passHash){
+	public @ResponseBody String login(@RequestParam String username, @RequestParam String enteredPassword){
 		User u = userRepository.findByUsername(username);
 		if(u == null) {
 			return "No login found for that username!";
 		}
-		if(!((String)u.getPassHash()).equals(passHash)) {
+		
+		String originalPassword = u.getPassHash();
+		
+		if(!Hasher.validatePassword(enteredPassword, originalPassword)) {
 			return "Wrong password!";
 		}
 		

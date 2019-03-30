@@ -50,12 +50,15 @@ public class RegisterActivity extends Activity {
         }
 
         final TextView tv_error = (TextView) findViewById(R.id.tv_signuperror);
-        String url = ServerInfo.IP + "/demo/add?username=" + username + "&passHash=" + password;
+
+        String passHash = Hasher.generateStrongPasswordHash(password);
+
+        String url = ServerInfo.IP + "/demo/add?username=" + username + "&passHash=" + passHash + "&userPublicKey=123&userPrivateKey=456";
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
                 //Display the first 500 characters of the response string
-                if(response.equals("Saved")){
+                if(response.equals("Success")){
                     Toast.makeText(getApplicationContext(),"Success!",Toast.LENGTH_SHORT).show();
                     finish();
                 } else {

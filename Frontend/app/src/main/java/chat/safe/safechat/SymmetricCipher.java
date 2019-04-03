@@ -1,7 +1,5 @@
 package chat.safe.safechat;
 
-import android.util.Base64;
-
 import org.apache.commons.lang3.ArrayUtils;
 
 import javax.crypto.Cipher;

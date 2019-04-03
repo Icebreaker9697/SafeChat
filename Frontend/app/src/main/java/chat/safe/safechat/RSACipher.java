@@ -1,7 +1,5 @@
 package chat.safe.safechat;
 
-import android.util.Base64;
-
 import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -47,7 +45,7 @@ public class RSACipher {
             Cipher cipherEncrypt = Cipher.getInstance("RSA/NONE/OAEPPadding");
             cipherEncrypt.init(Cipher.ENCRYPT_MODE, key);
             byte[] encrypted = cipherEncrypt.doFinal(value.getBytes());
-            return android.util.Base64.encodeToString(encrypted, android.util.Base64.DEFAULT);
+            return URLEncoder.encodeToString(encrypted);
         } catch(Exception e){
             e.printStackTrace();
             return null;
@@ -60,7 +58,7 @@ public class RSACipher {
             Cipher cipherEncrypt = Cipher.getInstance("RSA/NONE/OAEPPadding");
             cipherEncrypt.init(Cipher.ENCRYPT_MODE, key);
             byte[] encrypted = cipherEncrypt.doFinal(value.getBytes());
-            return android.util.Base64.encodeToString(encrypted, android.util.Base64.DEFAULT);
+            return URLEncoder.encodeToString(encrypted);
         } catch(Exception e){
             e.printStackTrace();
             return null;
@@ -72,7 +70,7 @@ public class RSACipher {
             PublicKey key = loadPublicKey(publickey);
             Cipher cipherDecrypt = Cipher.getInstance("RSA/NONE/OAEPPadding");
             cipherDecrypt.init(Cipher.DECRYPT_MODE, key);
-            byte[] original = cipherDecrypt.doFinal(android.util.Base64.decode(encrypted, Base64.DEFAULT));
+            byte[] original = cipherDecrypt.doFinal(URLEncoder.decodeFromString(encrypted));
             return new String(original);
         }catch(Exception e){
             e.printStackTrace();
@@ -85,7 +83,7 @@ public class RSACipher {
             PrivateKey key = loadPrivateKey(privatekey);
             Cipher cipherDecrypt = Cipher.getInstance("RSA/NONE/OAEPPadding");
             cipherDecrypt.init(Cipher.DECRYPT_MODE, key);
-            byte[] original = cipherDecrypt.doFinal(android.util.Base64.decode(encrypted, Base64.DEFAULT));
+            byte[] original = cipherDecrypt.doFinal(URLEncoder.decodeFromString(encrypted));
             return new String(original);
         }catch(Exception e){
             e.printStackTrace();
@@ -100,7 +98,7 @@ public class RSACipher {
      */
     public static PrivateKey loadPrivateKey(String key64){
         try {
-            byte[] clear = android.util.Base64.decode(key64, android.util.Base64.DEFAULT);
+            byte[] clear = URLEncoder.decodeFromString(key64);
             PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(clear);
             KeyFactory fact = KeyFactory.getInstance("RSA");
             PrivateKey priv = fact.generatePrivate(keySpec);
@@ -119,7 +117,7 @@ public class RSACipher {
      */
     public static PublicKey loadPublicKey(String stored){
         try {
-            byte[] data = android.util.Base64.decode(stored, android.util.Base64.DEFAULT);
+            byte[] data = URLEncoder.decodeFromString(stored);
             X509EncodedKeySpec spec = new X509EncodedKeySpec(data);
             KeyFactory fact = KeyFactory.getInstance("RSA");
             return fact.generatePublic(spec);
@@ -139,7 +137,7 @@ public class RSACipher {
             KeyFactory fact = KeyFactory.getInstance("RSA");
             PKCS8EncodedKeySpec spec = fact.getKeySpec(priv, PKCS8EncodedKeySpec.class);
             byte[] packed = spec.getEncoded();
-            String key64 = android.util.Base64.encodeToString(packed, android.util.Base64.DEFAULT);
+            String key64 = URLEncoder.encodeToString(packed);
             Arrays.fill(packed, (byte) 0);
             return key64;
         }catch(Exception e){
@@ -157,7 +155,7 @@ public class RSACipher {
         try {
             KeyFactory fact = KeyFactory.getInstance("RSA");
             X509EncodedKeySpec spec = fact.getKeySpec(publ, X509EncodedKeySpec.class);
-            return android.util.Base64.encodeToString(spec.getEncoded(), android.util.Base64.DEFAULT);
+            return URLEncoder.encodeToString(spec.getEncoded());
         } catch(Exception e){
             e.printStackTrace();
             return null;

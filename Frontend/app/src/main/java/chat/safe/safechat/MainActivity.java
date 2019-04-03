@@ -122,6 +122,16 @@ public class MainActivity extends AppCompatActivity {
 
         String decryptedWithPublicKey = decryptWithPublic(publicKey, encryptedWithPrivateKey);
         System.out.println("Decrypted with Public Key: " + decryptedWithPublicKey);
+
+        String msg2 = "Hello";
+        String key = "password";
+        String encrypted = SymmetricCipher.encrypt(key, msg2);
+        System.out.println("Encrypted with key='" + key + "': " + encrypted);
+        String dec1 = SymmetricCipher.decrypt(key, encrypted);
+        String key2 = key + "d";
+        String dec2 = SymmetricCipher.decrypt(key2, encrypted);
+        System.out.println("Decrypted with key='" + key + "': " + dec1);
+        System.out.println("Decrypted with key='" + key2 + "': " + dec2);
     }
 
     public void testHash(View v){

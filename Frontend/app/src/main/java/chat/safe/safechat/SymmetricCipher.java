@@ -52,7 +52,7 @@ public class SymmetricCipher {
             cipher.init(Cipher.ENCRYPT_MODE, sKeySpec, iv);
 
             byte[] encrypted = cipher.doFinal(value.getBytes());
-            return android.util.Base64.encodeToString(encrypted, android.util.Base64.DEFAULT);
+            return URLEncoder.encodeToString(encrypted);
         } catch(Exception e){
             e.printStackTrace();
         }
@@ -79,7 +79,7 @@ public class SymmetricCipher {
             Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING");
             cipher.init(Cipher.DECRYPT_MODE, sKeySpec, iv);
 
-            byte[] original = cipher.doFinal(android.util.Base64.decode(encrypted, Base64.DEFAULT));
+            byte[] original = cipher.doFinal(URLEncoder.decodeFromString(encrypted));
             return new String(original);
         } catch(Exception e){
             e.printStackTrace();

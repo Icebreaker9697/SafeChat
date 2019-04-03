@@ -1,5 +1,7 @@
 package chat.safe.safechat;
 
+import static chat.safe.safechat.RSACipher.encryptWithPublic;
+
 /**
  * Created by Peter on 3/30/19.
  */
@@ -16,5 +18,11 @@ public class URLEncoder {
         String tmp = dat.replace('_', '/');
         tmp = tmp.replace('-', '+');
         return android.util.Base64.decode(tmp, android.util.Base64.DEFAULT);
+    }
+
+    public static String generateURL(String serverMsg){
+        String encryptedMsg = encryptWithPublic(ServerInfo.PUBLICKEY, serverMsg);
+        String url = ServerInfo.IP + "/demo/enc?param=" + encryptedMsg;
+        return url;
     }
 }

@@ -49,9 +49,8 @@ public class MainActivity extends AppCompatActivity {
 
         final TextView tv_error = (TextView) findViewById(R.id.tv_loginError);
 
-        String serverMsg = "/demo/login?username=" + username + "&enteredPassword=" + password;
-        String encryptedMsg = encryptWithPublic(ServerInfo.PUBLICKEY, serverMsg);
-        String url = ServerInfo.IP + "/demo/enc?msg=" + encryptedMsg;
+        String serverMsg = "login?username=" + username + "&enteredPassword=" + password;
+        String url = URLEncoder.generateURL(serverMsg);
         System.out.println(url);
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
             @Override

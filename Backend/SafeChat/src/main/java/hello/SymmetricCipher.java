@@ -1,4 +1,4 @@
-package chat.safe.safechat;
+package hello;
 
 import org.apache.commons.lang3.ArrayUtils;
 

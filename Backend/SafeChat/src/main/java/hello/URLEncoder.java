@@ -13,6 +13,6 @@ public class URLEncoder {
 	public static byte[] decodeFromString(String dat) {
 		String tmp = dat.replace('_', '/');
 		tmp = tmp.replace('-', '+');
-		return Base64.getDecoder().decode(tmp);
+		return Base64.getMimeDecoder().decode(tmp);
 	}
 }

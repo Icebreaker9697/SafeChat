@@ -17,6 +17,7 @@ import com.android.volley.toolbox.StringRequest;
 import org.w3c.dom.Text;
 
 import static chat.safe.safechat.RSACipher.encryptWithPublic;
+import static chat.safe.safechat.RSACipher.generateKeyPair;
 
 public class RegisterActivity extends Activity {
 
@@ -55,8 +56,15 @@ public class RegisterActivity extends Activity {
 
         String passHash = Hasher.generateStrongPasswordHash(password);
 
-        String serverMsg = "add?username=" + username + "&passHash=" + passHash + "&userPublicKey=123&userPrivateKey=456";
-        String url = URLEncoder.generateURL(serverMsg);
+
+        String[] keys = generateKeyPair();
+
+        String userPublicKey = keys[0];
+        String userPrivateKey = keys[1];
+        String encryptedUserPrivateKey = SymmetricCipher.encrypt(password, userPrivateKey);
+
+        String serverMsg = "add?" + username + "?" + passHash + "?" + userPublicKey + "?" + encryptedUserPrivateKey;
+        String url = URLEncoder.generateEncryptedURL(serverMsg);
         System.out.println(url);
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
             @Override

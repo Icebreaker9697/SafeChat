@@ -1,6 +1,7 @@
 package chat.safe.safechat;
 
 import static chat.safe.safechat.RSACipher.encryptWithPublic;
+import static chat.safe.safechat.RSACipher.generateKeyPair;
 
 /**
  * Created by Peter on 3/30/19.
@@ -20,9 +21,11 @@ public class URLEncoder {
         return android.util.Base64.decode(tmp, android.util.Base64.DEFAULT);
     }
 
-    public static String generateURL(String serverMsg){
-        String encryptedMsg = encryptWithPublic(ServerInfo.PUBLICKEY, serverMsg);
-        String url = ServerInfo.IP + "/demo/enc?param=" + encryptedMsg;
+    public static String generateEncryptedURL(String serverMsg){
+        String symmetricKey = SymmetricCipher.generateRandomKey();
+        String encryptedMsg = SymmetricCipher.encrypt(symmetricKey, serverMsg, true);
+        String encryptedSymmetricKey = encryptWithPublic(ServerInfo.PUBLICKEY, symmetricKey);
+        String url = ServerInfo.IP + "/demo/enc?payloadCipher=" + encryptedMsg  + "&encryptedKey=" + encryptedSymmetricKey;
         return url;
     }
 }

@@ -19,20 +19,28 @@ public class MainController{
 	private UserRepository userRepository;
 
 	@GetMapping(path="/enc")
-	public @ResponseBody String enc(@RequestParam String param) {
-		String action = decrypt(param).split("\\?")[0];
+	public @ResponseBody String enc(@RequestParam String payloadCipher, @RequestParam String encryptedKey) {
+		String symmetricKey = decryptKey(encryptedKey);
+		String[] msg = decryptMsg(payloadCipher, symmetricKey).split("\\?");
+		String action = msg[0];
+		String username = "";
 		switch(action) {
 			case "login":
-				return "will login";
+				username = msg[1];
+				String password = msg[2];
+				return login(username, password, userRepository);
 			case "add":
-				return "will add new user";
+				username = msg[1];
+				String passHash = msg[2];
+				String userPublicKey = msg[3];
+				String userPrivateKey = msg[4];
+				return addNewUser(username, passHash, userPublicKey, userPrivateKey, userRepository);
 				
 			default: return "Server did not understand message.";
 		}
 	}
 	
-	@GetMapping(path="/add") //Map ONLY GET Requests
-	public @ResponseBody String addNewUser(@RequestParam String username, @RequestParam String passHash, @RequestParam String userPublicKey, @RequestParam String userPrivateKey){
+	public static String addNewUser(String username, String passHash, String userPublicKey, String encryptedUserPrivateKey, UserRepository userRepository){
 
 		User u = userRepository.findByUsername(username);
 
@@ -44,14 +52,13 @@ public class MainController{
 		n.setUsername(username);
 		n.setPassHash(passHash);
 		n.setUserPublicKey(userPublicKey);
-		n.setUserPrivateKey(userPrivateKey);
+		n.setEncryptedUserPrivateKey(encryptedUserPrivateKey);
 
 		userRepository.save(n);
 		return "Success";
 	}
 	
-	@GetMapping(path="/login") //Map ONLY GET Requests
-	public @ResponseBody String login(@RequestParam String username, @RequestParam String enteredPassword){
+	public static String login(String username, String enteredPassword, UserRepository userRepository){
 		User u = userRepository.findByUsername(username);
 		if(u == null) {
 			return "No login found for that username!";
@@ -61,14 +68,18 @@ public class MainController{
 		
 		if(!Hasher.validatePassword(enteredPassword, originalPassword)) {
 			return "Wrong password!";
+		}else {
+			return u.getEncryptedUserPrivateKey();
 		}
-		
-		return "Success";
 	}
 	
-	private static String decrypt(String msg) {
-		String decryptedMsg = RSACipher.decryptWithPrivate(ServerInfo.PRIVATEKEY, msg);
-		return decryptedMsg;
+	private static String decryptKey(String encryptedKey) {
+		String decryptedKey = RSACipher.decryptWithPrivate(ServerInfo.PRIVATEKEY, encryptedKey);
+		return decryptedKey;
+	}
+	
+	private static String decryptMsg(String payloadCipher, String symmetricKey) {
+		return SymmetricCipher.decrypt(symmetricKey, payloadCipher, true);
 	}
 
 	/*

@@ -1,10 +1,12 @@
 package hello;
 
 import javax.persistence.Column;
+
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Lob;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotNull;
@@ -28,6 +30,7 @@ public class User {
 	 */
 	@NotNull
 	@Column
+	@Lob
 	private String passHash;
 	
 	/**
@@ -35,6 +38,7 @@ public class User {
 	 */
 	@NotNull
 	@Column
+	@Lob
 	private String userPublicKey;
 	
 	/**
@@ -42,7 +46,8 @@ public class User {
 	 */
 	@NotNull
 	@Column
-	private String userPrivateKey;
+	@Lob
+	private String encryptedUserPrivateKey;
 
 	public Integer getId(){
 		return id;
@@ -76,12 +81,12 @@ public class User {
 		this.userPublicKey = userPublicKey;
 	}
 	
-	public String getUserPrivateKey() {
-		return userPrivateKey;
+	public String getEncryptedUserPrivateKey() {
+		return encryptedUserPrivateKey;
 	}
 	
-	public void setUserPrivateKey(String userPrivateKey) {
-		this.userPrivateKey = userPrivateKey;
+	public void setEncryptedUserPrivateKey(String encryptedUserPrivateKey) {
+		this.encryptedUserPrivateKey = encryptedUserPrivateKey;
 	}
 }
 //Above, is the entity class which Hibernate will automatically translate into a table

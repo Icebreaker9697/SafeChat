@@ -35,6 +35,8 @@ dependencies {
     
     // https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk15on
 	compile group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: '1.61'
+	
+	implementation 'org.apache.commons:commons-lang3:3.8.1'
     
 
     testCompile('org.springframework.boot:spring-boot-starter-test')

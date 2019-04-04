@@ -49,8 +49,8 @@ public class MainActivity extends AppCompatActivity {
 
         final TextView tv_error = (TextView) findViewById(R.id.tv_loginError);
 
-        String serverMsg = "login?username=" + username + "&enteredPassword=" + password;
-        String url = URLEncoder.generateURL(serverMsg);
+        String serverMsg = "login?" + username + "?" + password;
+        String url = URLEncoder.generateEncryptedURL(serverMsg);
         System.out.println(url);
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
             @Override
@@ -99,7 +99,7 @@ public class MainActivity extends AppCompatActivity {
     public void testButton(View v){
         String msg = "Hello";
 
-        String[] keys = generateKeyPair();
+        /*String[] keys = generateKeyPair();
 
         String publicKey = keys[0];
         String privateKey = keys[1];
@@ -123,9 +123,9 @@ public class MainActivity extends AppCompatActivity {
         System.out.println();
 
         String decryptedWithPublicKey = decryptWithPublic(publicKey, encryptedWithPrivateKey);
-        System.out.println("Decrypted with Public Key: " + decryptedWithPublicKey);
+        System.out.println("Decrypted with Public Key: " + decryptedWithPublicKey);*/
 
-        String msg2 = "Hello";
+        /*String msg2 = "Hello";
         String key = "password";
         String encrypted = SymmetricCipher.encrypt(key, msg2);
         System.out.println("Encrypted with key='" + key + "': " + encrypted);
@@ -133,7 +133,14 @@ public class MainActivity extends AppCompatActivity {
         String key2 = key + "d";
         String dec2 = SymmetricCipher.decrypt(key2, encrypted);
         System.out.println("Decrypted with key='" + key + "': " + dec1);
-        System.out.println("Decrypted with key='" + key2 + "': " + dec2);
+        System.out.println("Decrypted with key='" + key2 + "': " + dec2);*/
+
+        String msg3 = "I am funny.";
+        String randKey = SymmetricCipher.generateRandomKey();
+        String encryptedRand = SymmetricCipher.encrypt(randKey, msg3, true);
+        System.out.println("Encrypted with random key='" + randKey + "': " + encryptedRand);
+        String decryptedRand = SymmetricCipher.decrypt(randKey, encryptedRand, true);
+        System.out.println("Dencrypted with random key='" + randKey + "': " + decryptedRand);
     }
 
     public void testHash(View v){

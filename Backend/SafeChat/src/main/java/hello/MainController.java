@@ -61,15 +61,17 @@ public class MainController{
 	public static String login(String username, String enteredPassword, UserRepository userRepository){
 		User u = userRepository.findByUsername(username);
 		if(u == null) {
-			return "No login found for that username!";
+			return "nologin";
 		}
 		
 		String originalPassword = u.getPassHash();
 		
 		if(!Hasher.validatePassword(enteredPassword, originalPassword)) {
-			return "Wrong password!";
+			return "wrong";
 		}else {
-			return u.getEncryptedUserPrivateKey();
+			String resp = "";
+			resp = resp + u.getUsername() + "?" + u.getEncryptedUserPrivateKey() + "?" + u.getUserPublicKey();
+			return resp;
 		}
 	}
 	

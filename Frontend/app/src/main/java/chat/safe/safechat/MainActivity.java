@@ -1,108 +1,93 @@
 package chat.safe.safechat;
 
+import android.content.Context;
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.text.SpannableString;
-import android.text.style.UnderlineSpan;
+import android.support.annotation.NonNull;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.NavigationView;
+import android.support.design.widget.Snackbar;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
-import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.Toast;
-
-import com.android.volley.Request;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.StringRequest;
 
 import static chat.safe.safechat.RSACipher.decryptWithPrivate;
 import static chat.safe.safechat.RSACipher.decryptWithPublic;
 import static chat.safe.safechat.RSACipher.encryptWithPrivate;
 import static chat.safe.safechat.RSACipher.encryptWithPublic;
-import static chat.safe.safechat.RSACipher.generateKeyPair;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener{
 
-    TextView textView;
+    private static Context c;
+    private DrawerLayout mDrawerLayout;
+    private ActionBarDrawerToggle mToggle;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        c = this;
         setContentView(R.layout.activity_main);
+        setNavigationViewListener();
 
-        TextView signupText = findViewById(R.id.tv_signup);
-        String text = getString(R.string.signup);
-        SpannableString content = new SpannableString(text);
-        content.setSpan(new UnderlineSpan(), 0, text.length(), 0);
-        signupText.setText(content);
+        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawerLayout);
+        mToggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.string.open, R.string.close);
 
-        textView = (TextView) findViewById(R.id.centerAnchor);
+        mDrawerLayout.addDrawerListener(mToggle);
+        mToggle.syncState();
+
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+        if (!SaveSharedPreference.isLoggedIn(c)) {
+            Intent intent = new Intent(this, LoginActivity.class);
+            startActivity(intent);
+        }
     }
 
-    public void loginHandler(View v){
-        EditText etUsername = (EditText) findViewById(R.id.et_username);
-        EditText etPassword = (EditText) findViewById(R.id.et_password);
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if(mToggle.onOptionsItemSelected(item)){
+            return true;
+        }
 
-        String username = etUsername.getText().toString();
-        String password = etPassword.getText().toString();
-
-        final TextView tv_error = (TextView) findViewById(R.id.tv_loginError);
-
-        String serverMsg = "login?" + username + "?" + password;
-        String url = URLEncoder.generateEncryptedURL(serverMsg);
-        System.out.println(url);
-        StringRequest stringRequest = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
-            @Override
-            public void onResponse(String response) {
-                //Display the first 500 characters of the response string
-                if(response.equals("Success")){
-                    Toast.makeText(getApplicationContext(),"Logged in!",Toast.LENGTH_SHORT).show();
-                } else {
-                    tv_error.setText(response);
-                }
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                tv_error.setText("Error contacting the server!");
-            }
-        });
-
-        RequestHandler.getInstance(this).addToRequestQueue(stringRequest);
+        return super.onOptionsItemSelected(item);
     }
 
-    public void signupHandler(View v){
-        Intent intent = new Intent(this, RegisterActivity.class);
-        startActivity(intent);
+    @Override
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        // Handle navigation view item clicks here.
+        switch (item.getItemId()) {
+
+            case R.id.nav_logout: {
+                SaveSharedPreference.logout(c);
+                Toast.makeText(getApplicationContext(),"Logged out!",Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(this, LoginActivity.class);
+                startActivity(intent);
+                break;
+            }
+        }
+        //close navigation drawer
+        mDrawerLayout.closeDrawer(GravityCompat.START);
+        return true;
     }
 
-    public void sendRequestButton(View v){
-        String url = "http://10.0.2.2:8080/";
-
-        StringRequest stringRequest = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
-            @Override
-            public void onResponse(String response) {
-                //Display the first 500 characters of the response string
-                textView.setText("Response is: " + response);
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                textView.setText("That didn't work!");
-            }
-        });
-
-        RequestHandler.getInstance(this).addToRequestQueue(stringRequest);
+    private void setNavigationViewListener() {
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
     }
 
     public void testButton(View v){
         String msg = "Hello";
 
-        /*String[] keys = generateKeyPair();
-
-        String publicKey = keys[0];
-        String privateKey = keys[1];
+        String publicKey = SaveSharedPreference.getPublicKey(c);
+        String privateKey = SaveSharedPreference.getPrivateKey(c);
 
         System.out.println("Public key: " + publicKey);
         System.out.println("Private key: " + privateKey);
@@ -123,41 +108,6 @@ public class MainActivity extends AppCompatActivity {
         System.out.println();
 
         String decryptedWithPublicKey = decryptWithPublic(publicKey, encryptedWithPrivateKey);
-        System.out.println("Decrypted with Public Key: " + decryptedWithPublicKey);*/
-
-        /*String msg2 = "Hello";
-        String key = "password";
-        String encrypted = SymmetricCipher.encrypt(key, msg2);
-        System.out.println("Encrypted with key='" + key + "': " + encrypted);
-        String dec1 = SymmetricCipher.decrypt(key, encrypted);
-        String key2 = key + "d";
-        String dec2 = SymmetricCipher.decrypt(key2, encrypted);
-        System.out.println("Decrypted with key='" + key + "': " + dec1);
-        System.out.println("Decrypted with key='" + key2 + "': " + dec2);*/
-
-        String msg3 = "I am funny.";
-        String randKey = SymmetricCipher.generateRandomKey();
-        String encryptedRand = SymmetricCipher.encrypt(randKey, msg3, true);
-        System.out.println("Encrypted with random key='" + randKey + "': " + encryptedRand);
-        String decryptedRand = SymmetricCipher.decrypt(randKey, encryptedRand, true);
-        System.out.println("Dencrypted with random key='" + randKey + "': " + decryptedRand);
-    }
-
-    public void testHash(View v){
-        String pass = "qwertyuiop";
-        System.out.println("Set password is " + pass);
-        System.out.println();
-
-        String hash = Hasher.generateStrongPasswordHash(pass);
-        System.out.println("Hash generated from pass is: " + hash);
-        System.out.println();
-
-        String check1 = "qwertyuiop";
-       // boolean isSamePass1 = Hasher.validatePassword(check1, hash);
-        //System.out.println("Does " + check1 + "pass? " + isSamePass1);
-
-        String check2 = "qwertyuio";
-        //boolean isSamePass2 = Hasher.validatePassword(check2, hash);
-        //System.out.println("Does " + check2 + "pass? " + isSamePass2);
+        System.out.println("Decrypted with Public Key: " + decryptedWithPublicKey);
     }
 }

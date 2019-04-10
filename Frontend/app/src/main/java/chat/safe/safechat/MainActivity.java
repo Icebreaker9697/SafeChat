@@ -1,7 +1,9 @@
 package chat.safe.safechat;
 
+import android.app.FragmentManager;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
@@ -24,7 +26,7 @@ import static chat.safe.safechat.RSACipher.decryptWithPublic;
 import static chat.safe.safechat.RSACipher.encryptWithPrivate;
 import static chat.safe.safechat.RSACipher.encryptWithPublic;
 
-public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener{
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, AddFriends.OnFragmentInteractionListener, MainFragment.OnFragmentInteractionListener{
 
     private static Context c;
     private DrawerLayout mDrawerLayout;
@@ -44,6 +46,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mToggle.syncState();
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+        if(savedInstanceState == null) {
+            getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new MainFragment()).commit();
+        }
 
         if (!SaveSharedPreference.isLoggedIn(c)) {
             Intent intent = new Intent(this, LoginActivity.class);
@@ -68,8 +74,19 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             case R.id.nav_logout: {
                 SaveSharedPreference.logout(c);
                 Toast.makeText(getApplicationContext(),"Logged out!",Toast.LENGTH_SHORT).show();
+                getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new MainFragment()).commit();
                 Intent intent = new Intent(this, LoginActivity.class);
                 startActivity(intent);
+                break;
+            }
+
+            case R.id.nav_addFriend: {
+                getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new AddFriends()).commit();
+                break;
+            }
+
+            case R.id.nav_chats: {
+                getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new MainFragment()).commit();
                 break;
             }
         }
@@ -109,5 +126,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         String decryptedWithPublicKey = decryptWithPublic(publicKey, encryptedWithPrivateKey);
         System.out.println("Decrypted with Public Key: " + decryptedWithPublicKey);
+    }
+
+    @Override
+    public void onFragmentInteraction(Uri uri) {
+
     }
 }

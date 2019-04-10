@@ -35,11 +35,16 @@ public class LoginActivity extends AppCompatActivity {
         signupText.setText(content);
 
         textView = (TextView) findViewById(R.id.centerAnchor);
+
+        if (SaveSharedPreference.isLoggedIn(c)) {
+            Intent intent = new Intent(this, MainActivity.class);
+            startActivity(intent);
+        }
     }
 
     public void loginHandler(View v){
-        EditText etUsername = (EditText) findViewById(R.id.et_username);
-        EditText etPassword = (EditText) findViewById(R.id.et_password);
+        final EditText etUsername = (EditText) findViewById(R.id.et_username);
+        final EditText etPassword = (EditText) findViewById(R.id.et_password);
 
         String username = etUsername.getText().toString();
         final String password = etPassword.getText().toString();
@@ -65,8 +70,13 @@ public class LoginActivity extends AppCompatActivity {
                     String pubKey = strs[2];
                     String priKey = SymmetricCipher.decrypt(password, encPrivateKey, false);
                     SaveSharedPreference.login(c, uname, pubKey, priKey, password);
+
+                    etUsername.setText("");
+                    etPassword.setText("");
+
                     Toast.makeText(getApplicationContext(),"Logged in!",Toast.LENGTH_SHORT).show();
-                    finish();
+                    Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                    startActivity(intent);
                 }
             }
         }, new Response.ErrorListener() {

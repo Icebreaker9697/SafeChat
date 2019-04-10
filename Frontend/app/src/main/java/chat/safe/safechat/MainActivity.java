@@ -50,11 +50,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         if(savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new MainFragment()).commit();
         }
-
-        if (!SaveSharedPreference.isLoggedIn(c)) {
-            Intent intent = new Intent(this, LoginActivity.class);
-            startActivity(intent);
-        }
     }
 
     @Override
@@ -74,9 +69,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             case R.id.nav_logout: {
                 SaveSharedPreference.logout(c);
                 Toast.makeText(getApplicationContext(),"Logged out!",Toast.LENGTH_SHORT).show();
-                getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new MainFragment()).commit();
-                Intent intent = new Intent(this, LoginActivity.class);
-                startActivity(intent);
+                finish();
                 break;
             }
 

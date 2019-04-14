@@ -50,6 +50,9 @@ public class RegisterActivity extends Activity {
         } else if(!password.equals(confirm)){
             Toast.makeText(getApplicationContext(),"Passwords do not match!",Toast.LENGTH_SHORT).show();
             return;
+        } else if(username.contains("?")){
+            Toast.makeText(getApplicationContext(),"Username cannot contain '?'!",Toast.LENGTH_SHORT).show();
+            return;
         }
 
         final TextView tv_error = (TextView) findViewById(R.id.tv_signuperror);
@@ -72,7 +75,7 @@ public class RegisterActivity extends Activity {
             public void onResponse(String res) {
 
                 String response = SymmetricCipher.decrypt(symmetricKey, res, true);
-                
+
                 if(response.equals("Success")){
                     Toast.makeText(getApplicationContext(),"Success!",Toast.LENGTH_SHORT).show();
                     finish();

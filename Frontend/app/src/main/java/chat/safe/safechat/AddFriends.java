@@ -4,6 +4,7 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,6 +12,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -20,6 +22,7 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 
 /**
@@ -35,7 +38,7 @@ public class AddFriends extends Fragment {
     Button addFriend;
     EditText specifiedFriend;
     TextView tvError;
-    ArrayList<String> data=new ArrayList<String>();
+    static ArrayList<String> friendRequests = new ArrayList<String>();
 
 
     // TODO: Rename parameter arguments, choose names that match
@@ -114,10 +117,53 @@ public class AddFriends extends Fragment {
             }
         });
 
-        ListView lvData = (ListView) rootView.findViewById(R.id.lv_Requests);
-        lvData.setAdapter(new ArrayAdapter(getActivity().getApplicationContext(), android.R.layout.simple_list_item_1, data));
+        populateList(getActivity().getApplicationContext(), rootView, this);
 
         return rootView;
+    }
+
+    public static void refreshList(final Context c, final View rootView, AddFriends parent){
+        ListView lvData = (ListView) rootView.findViewById(R.id.lv_Requests);
+        lvData.setVisibility(View.GONE);
+        ProgressBar pb = (ProgressBar) rootView.findViewById(R.id.getFriendsProgress);
+        pb.setVisibility(View.VISIBLE);
+
+        populateList(c, rootView, parent);
+    }
+
+    public static void populateList(final Context c, final View rootView, final AddFriends parent){
+        String url = ServerInfo.IP + "/demo/getrequests?username=" + SaveSharedPreference.getUsername(c);
+        System.out.println(url);
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String res) {
+
+                //String response = SymmetricCipher.decrypt(symmetricKey, res, true);
+                String response = res;
+
+                if(response.equals("noRequests")){
+                    ProgressBar pb = (ProgressBar) rootView.findViewById(R.id.getFriendsProgress);
+                    pb.setVisibility(View.GONE);
+                    TextView noRequests = (TextView) rootView.findViewById(R.id.tv_noRequests);
+                    noRequests.setVisibility(View.VISIBLE);
+                } else {
+                    String[] tmp = response.split("\\?");
+                    friendRequests = new ArrayList<>(Arrays.asList(tmp));
+                    ProgressBar pb = (ProgressBar) rootView.findViewById(R.id.getFriendsProgress);
+                    pb.setVisibility(View.GONE);
+                    ListView lvData = (ListView) rootView.findViewById(R.id.lv_Requests);
+                    lvData.setAdapter(new CustomFriendRequestListAdapter(c, friendRequests, parent, rootView));
+                    lvData.setVisibility(View.VISIBLE);
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.d("AddFriendsFragment", "Error contacting the server!");
+            }
+        });
+
+        RequestHandler.getInstance(c).addToRequestQueue(stringRequest);
     }
 
     public static void sendFriendRequest(String fromUser, final String toUser, final EditText userSearch, final TextView tv_error, final Context c){

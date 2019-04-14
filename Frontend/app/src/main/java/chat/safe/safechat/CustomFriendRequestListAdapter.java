@@ -7,7 +7,15 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
 
 import org.w3c.dom.Text;
 
@@ -19,20 +27,110 @@ import java.util.ArrayList;
 
 public class CustomFriendRequestListAdapter extends ArrayAdapter<String>{
 
-    public CustomFriendRequestListAdapter(@NonNull Context context, ArrayList<String> requests) {
+    private Context c;
+    private AddFriends parentActivity;
+    private View rootView;
+
+    public CustomFriendRequestListAdapter(@NonNull Context context, ArrayList<String> requests, AddFriends parent, View view) {
         super(context, R.layout.list_view_custom_row, requests);
+        c = context;
+        parentActivity = parent;
+        rootView = view;
     }
 
     @NonNull
     @Override
-    public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
+    public View getView(int position, @Nullable View convertView, @NonNull final ViewGroup parent) {
         LayoutInflater mInflater = LayoutInflater.from(getContext());
         View customView = mInflater.inflate(R.layout.list_view_custom_row, parent, false);
-        String singleFriendRequester = getItem(position);
+        final String singleFriendRequester = getItem(position);
 
         TextView dataText = (TextView) customView.findViewById(R.id.clv_tv1);
 
+        Button bnReject = (Button) customView.findViewById(R.id.bnReject);
+        Button bnAccept = (Button) customView.findViewById(R.id.bnAccept);
+
+        bnReject.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String toUser = singleFriendRequester;
+                String fromUser = SaveSharedPreference.getUsername(c);
+
+                sendFriendReject(fromUser, toUser, c, parentActivity, rootView);
+            }
+        });
+
+        bnAccept.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String toUser = singleFriendRequester;
+                String fromUser = SaveSharedPreference.getUsername(c);
+
+                sendFriendAccept(fromUser, toUser, c, parentActivity, rootView);
+            }
+        });
+
         dataText.setText(singleFriendRequester);
         return customView;
+    }
+
+    public static void sendFriendAccept(String fromUser, final String toUser, final Context c, final AddFriends parentActivity, final View rootView){
+
+        String url = ServerInfo.IP + "/demo/requestFriend?from=" + fromUser + "&to=" + toUser;
+        System.out.println(url);
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                //Display the first 500 characters of the response string
+                if(response.equals("usernotexist")){
+                    /*do nothing*/
+                } else if(response.equals("notFound")){
+                    /*do nothing*/
+                } else if(response.equals("becamefriends")){
+                    Toast.makeText(c,"Accepted request from " + toUser + ".",Toast.LENGTH_SHORT).show();
+                    parentActivity.refreshList(c, rootView, parentActivity);
+                }
+                else{
+                    /*do nothing*/
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Toast.makeText(c,"Error contacting the server!",Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        RequestHandler.getInstance(c).addToRequestQueue(stringRequest);
+    }
+
+    public static void sendFriendReject(String fromUser, final String toUser, final Context c, final AddFriends parentActivity, final View rootView){
+
+        String url = ServerInfo.IP + "/demo/rejectrequest?from=" + fromUser + "&to=" + toUser;
+        System.out.println(url);
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                //Display the first 500 characters of the response string
+                if(response.equals("usernotexist")){
+                    /*do nothing*/
+                } else if(response.equals("notFound")){
+                    /*do nothing*/
+                } else if(response.equals("rejectedfriends")){
+                    Toast.makeText(c,"Rejected request from " + toUser + ".",Toast.LENGTH_SHORT).show();
+                    parentActivity.refreshList(c, rootView, parentActivity);
+                }
+                else{
+                    /*do nothing*/
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Toast.makeText(c,"Error contacting the server!",Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        RequestHandler.getInstance(c).addToRequestQueue(stringRequest);
     }
 }

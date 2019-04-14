@@ -41,24 +41,28 @@ public class MainController{
 			case "login":
 				username = msg[1];
 				String password = msg[2];
-				return login(username, password, userRepository);
+				return login(username, password, userRepository, symmetricKey);
 			case "add":
 				username = msg[1];
 				String passHash = msg[2];
 				String userPublicKey = msg[3];
 				String userPrivateKey = msg[4];
-				return addNewUser(username, passHash, userPublicKey, userPrivateKey, userRepository);
+				return addNewUser(username, passHash, userPublicKey, userPrivateKey, userRepository, symmetricKey);
 				
 			default: return "Server did not understand message.";
 		}
 	}
 	
-	public static String addNewUser(String username, String passHash, String userPublicKey, String encryptedUserPrivateKey, UserRepository userRepository){
+	public static String addNewUser(String username, String passHash, String userPublicKey, String encryptedUserPrivateKey, UserRepository userRepository, String symmetricKey){
 
 		User u = userRepository.findByUsername(username);
 
+		String msg = "";
+		
 		if(u != null) {
-			return "User with that username already exists!";
+			msg = "User with that username already exists!";
+			String enc = encryptMsg(msg, symmetricKey);
+			return enc;
 		}
 
 		User n = new User();
@@ -68,24 +72,32 @@ public class MainController{
 		n.setEncryptedUserPrivateKey(encryptedUserPrivateKey);
 
 		userRepository.save(n);
-		return "Success";
+		msg = "Success";
+		String enc = encryptMsg(msg, symmetricKey);
+		return enc;
 	}
 	
-	public static String login(String username, String enteredPassword, UserRepository userRepository){
+	public static String login(String username, String enteredPassword, UserRepository userRepository, String symmetricKey){
 		User u = userRepository.findByUsername(username);
+		String msg = "";
 		if(u == null) {
-			return "nologin";
+			msg = "nologin";
+			String enc = encryptMsg(msg, symmetricKey);
+			return enc;
 		}
 		
 		String originalPassword = u.getPassHash();
 		
 		if(!Hasher.validatePassword(enteredPassword, originalPassword)) {
-			return "wrong";
+			msg = "wrong";
 		}else {
 			String resp = "";
 			resp = resp + u.getUsername() + "?" + u.getEncryptedUserPrivateKey() + "?" + u.getUserPublicKey();
-			return resp;
+			msg = resp;
 		}
+		
+		String enc = encryptMsg(msg, symmetricKey);
+		return enc;
 	}
 	
 	private static String decryptKey(String encryptedKey) {
@@ -95,6 +107,10 @@ public class MainController{
 	
 	private static String decryptMsg(String payloadCipher, String symmetricKey) {
 		return SymmetricCipher.decrypt(symmetricKey, payloadCipher, true);
+	}
+	
+	private static String encryptMsg(String msg, String symmetricKey) {
+		return SymmetricCipher.encrypt(symmetricKey, msg, true);
 	}
 	
 	@GetMapping(path="/addfriend")

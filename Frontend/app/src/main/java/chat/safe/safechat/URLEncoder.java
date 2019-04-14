@@ -21,8 +21,7 @@ public class URLEncoder {
         return android.util.Base64.decode(tmp, android.util.Base64.DEFAULT);
     }
 
-    public static String generateEncryptedURL(String serverMsg){
-        String symmetricKey = SymmetricCipher.generateRandomKey();
+    public static String generateEncryptedURL(String serverMsg, String symmetricKey){
         String encryptedMsg = SymmetricCipher.encrypt(symmetricKey, serverMsg, true);
         String encryptedSymmetricKey = encryptWithPublic(ServerInfo.PUBLICKEY, symmetricKey);
         String url = ServerInfo.IP + "/demo/enc?payloadCipher=" + encryptedMsg  + "&encryptedKey=" + encryptedSymmetricKey;

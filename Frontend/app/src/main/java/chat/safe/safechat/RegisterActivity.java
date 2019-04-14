@@ -64,12 +64,15 @@ public class RegisterActivity extends Activity {
         String encryptedUserPrivateKey = SymmetricCipher.encrypt(password, userPrivateKey);
 
         String serverMsg = "add?" + username + "?" + passHash + "?" + userPublicKey + "?" + encryptedUserPrivateKey;
-        String url = URLEncoder.generateEncryptedURL(serverMsg);
+        final String symmetricKey = SymmetricCipher.generateRandomKey();
+        String url = URLEncoder.generateEncryptedURL(serverMsg, symmetricKey);
         System.out.println(url);
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
             @Override
-            public void onResponse(String response) {
-                //Display the first 500 characters of the response string
+            public void onResponse(String res) {
+
+                String response = SymmetricCipher.decrypt(symmetricKey, res, true);
+                
                 if(response.equals("Success")){
                     Toast.makeText(getApplicationContext(),"Success!",Toast.LENGTH_SHORT).show();
                     finish();

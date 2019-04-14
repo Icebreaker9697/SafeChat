@@ -52,12 +52,14 @@ public class LoginActivity extends AppCompatActivity {
         final TextView tv_error = (TextView) findViewById(R.id.tv_loginError);
 
         String serverMsg = "login?" + username + "?" + password;
-        String url = URLEncoder.generateEncryptedURL(serverMsg);
+        final String symmetricKey = SymmetricCipher.generateRandomKey();
+        String url = URLEncoder.generateEncryptedURL(serverMsg, symmetricKey);
         System.out.println(url);
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
             @Override
-            public void onResponse(String response) {
-                //Display the first 500 characters of the response string
+            public void onResponse(String res) {
+                String response = SymmetricCipher.decrypt(symmetricKey, res, true);
+
                 if(response.equals("nologin")){
                     tv_error.setText("No login found for that username!");
 

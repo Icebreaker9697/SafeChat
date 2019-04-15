@@ -4,9 +4,21 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ListView;
+import android.widget.ProgressBar;
+import android.widget.TextView;
+
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+
+import java.util.ArrayList;
+import java.util.Arrays;
 
 
 /**
@@ -26,6 +38,8 @@ public class MainFragment extends Fragment {
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
+
+    static ArrayList<String> friends = new ArrayList<String>();
 
     private OnFragmentInteractionListener mListener;
 
@@ -64,7 +78,46 @@ public class MainFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_main, container, false);
+        View rootView = inflater.inflate(R.layout.fragment_main, container, false);
+
+        populateList(getActivity().getApplicationContext(), rootView);
+
+        return rootView;
+    }
+
+    public static void populateList(final Context c, final View rootView){
+        String url = ServerInfo.IP + "/demo/getfriends?username=" + SaveSharedPreference.getUsername(c);
+        System.out.println(url);
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String res) {
+
+                //String response = SymmetricCipher.decrypt(symmetricKey, res, true);
+                String response = res;
+
+                if(response.equals("noFriends")){
+                    ProgressBar pb = (ProgressBar) rootView.findViewById(R.id.pb_friends);
+                    pb.setVisibility(View.GONE);
+                    TextView noRequests = (TextView) rootView.findViewById(R.id.tv_nofriends);
+                    noRequests.setVisibility(View.VISIBLE);
+                } else {
+                    String[] tmp = response.split("\\?");
+                    friends = new ArrayList<>(Arrays.asList(tmp));
+                    ProgressBar pb = (ProgressBar) rootView.findViewById(R.id.pb_friends);
+                    pb.setVisibility(View.GONE);
+                    ListView lvData = (ListView) rootView.findViewById(R.id.lv_friends);
+                    lvData.setAdapter(new CustomFriendListAdapter(c, friends));
+                    lvData.setVisibility(View.VISIBLE);
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.d("MainFragment", "Error contacting the server!");
+            }
+        });
+
+        RequestHandler.getInstance(c).addToRequestQueue(stringRequest);
     }
 
     // TODO: Rename method, update argument and hook method into UI event

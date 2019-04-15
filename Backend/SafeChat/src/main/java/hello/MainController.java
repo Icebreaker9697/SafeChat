@@ -134,6 +134,41 @@ public class MainController{
 				return "notFound";
 	}
 	
+	@GetMapping(path="/getfriends")
+	public @ResponseBody String getFriends(String username) {
+		return getFriendships(username, userRelationshipsRepository);
+	}
+	
+	public static String getFriendships(String username, UserRelationshipsRepository userRelationshipsRepository) {
+		//get list of all of source's relationships
+		List<UserRelationships> u = userRelationshipsRepository.findByFromUsername(username);
+		
+		List<String> friendRequests = new ArrayList<>();
+		
+		//check to see if the user had any relationships at all
+		if(u != null && u.size() > 0) {
+			//iterate through all of their relationships and add the ones that are of type "needsToRespond"
+			for(int i = 0; i < u.size(); i++) {
+				UserRelationships tmpRelationship = u.get(i);
+				if(tmpRelationship.getRelationshipType().equals(FRIENDS)) {
+					friendRequests.add(tmpRelationship.getToUsername());
+				}
+			}
+		}
+		
+		String res = "";
+		if(friendRequests.size() == 0) {
+			res = "noFriends";
+		} else {
+			for(int i = 0; i < friendRequests.size(); i++) {
+				res = res + friendRequests.get(i) + "?";
+			}
+			res = res.substring(0, res.length() - 1);
+		}
+		
+		return res;	
+	}
+	
 	@GetMapping(path="/getrequests")
 	public @ResponseBody String getRequests(String username) {
 		return getFriendRequests(username, userRelationshipsRepository);

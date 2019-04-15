@@ -90,16 +90,6 @@ public class AddFriends extends Fragment {
         // Inflate the layout for this fragment
         final View rootView =  inflater.inflate(R.layout.fragment_add_friends, container, false);
 
-        /*testList = (Button) rootView.findViewById(R.id.bn_test_list);
-        testList.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                data.add("Hello");
-                ListView lvData = (ListView) rootView.findViewById(R.id.lv_Requests);
-                lvData.setAdapter(new CustomFriendRequestListAdapter(getActivity().getApplicationContext(), data));
-            }
-        });*/
-
         addFriend = (Button) rootView.findViewById(R.id.bn_addFriend);
         specifiedFriend = (EditText) rootView.findViewById(R.id.et_addFriend);
         tvError = (TextView) rootView.findViewById(R.id.af_tv_error);

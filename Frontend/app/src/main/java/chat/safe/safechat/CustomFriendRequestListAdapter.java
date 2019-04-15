@@ -8,7 +8,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -16,8 +15,6 @@ import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
-
-import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 
@@ -32,7 +29,7 @@ public class CustomFriendRequestListAdapter extends ArrayAdapter<String>{
     private View rootView;
 
     public CustomFriendRequestListAdapter(@NonNull Context context, ArrayList<String> requests, AddFriends parent, View view) {
-        super(context, R.layout.list_view_custom_row, requests);
+        super(context, R.layout.friend_request_list_item, requests);
         c = context;
         parentActivity = parent;
         rootView = view;
@@ -42,13 +39,13 @@ public class CustomFriendRequestListAdapter extends ArrayAdapter<String>{
     @Override
     public View getView(int position, @Nullable View convertView, @NonNull final ViewGroup parent) {
         LayoutInflater mInflater = LayoutInflater.from(getContext());
-        View customView = mInflater.inflate(R.layout.list_view_custom_row, parent, false);
+        View customView = mInflater.inflate(R.layout.friend_request_list_item, parent, false);
         final String singleFriendRequester = getItem(position);
 
         TextView dataText = (TextView) customView.findViewById(R.id.clv_tv1);
 
         Button bnReject = (Button) customView.findViewById(R.id.bnReject);
-        Button bnAccept = (Button) customView.findViewById(R.id.bnAccept);
+        Button bnAccept = (Button) customView.findViewById(R.id.bn_Chat);
 
         bnReject.setOnClickListener(new View.OnClickListener() {
             @Override

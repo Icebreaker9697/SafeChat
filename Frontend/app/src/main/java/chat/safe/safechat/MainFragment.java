@@ -86,14 +86,15 @@ public class MainFragment extends Fragment {
     }
 
     public static void populateList(final Context c, final View rootView){
-        String url = ServerInfo.IP + "/demo/getfriends?username=" + SaveSharedPreference.getUsername(c);
+        String serverMsg = "getfriends?" + SaveSharedPreference.getUsername(c);
+        final String symmetricKey = SymmetricCipher.generateRandomKey();
+        String url = URLEncoder.generateEncryptedURL(serverMsg, symmetricKey);
         System.out.println(url);
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
             @Override
             public void onResponse(String res) {
 
-                //String response = SymmetricCipher.decrypt(symmetricKey, res, true);
-                String response = res;
+                String response = SymmetricCipher.decrypt(symmetricKey, res, true);
 
                 if(response.equals("noFriends")){
                     ProgressBar pb = (ProgressBar) rootView.findViewById(R.id.pb_friends);

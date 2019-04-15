@@ -38,6 +38,8 @@ public class MainController{
 		String[] msg = decryptMsg(payloadCipher, symmetricKey).split("\\?");
 		String action = msg[0];
 		String username = "";
+		String fromUser = "";
+		String toUser = "";
 		switch(action) {
 			case "login":
 				username = msg[1];
@@ -49,11 +51,26 @@ public class MainController{
 				String userPublicKey = msg[3];
 				String userPrivateKey = msg[4];
 				return addNewUser(username, passHash, userPublicKey, userPrivateKey, userRepository, symmetricKey);
+			case "requestfriend":
+				fromUser = msg[1];
+				toUser = msg[2];
+				return sendFriendRequest(fromUser, toUser, userRelationshipsRepository, userRepository, symmetricKey);
+			case "getrequests":
+				username = msg[1];
+				return getFriendRequests(username, userRelationshipsRepository, symmetricKey);
+			case "rejectrequest":
+				fromUser = msg[1];
+				toUser = msg[2];
+				return rejectFriendRequest(fromUser, toUser, userRelationshipsRepository, userRepository, symmetricKey);
+			case "getfriends":
+				username = msg[1];
+				return getFriendships(username, userRelationshipsRepository, symmetricKey);
 				
-			default: return "Server did not understand message.";
+			default: return encryptMsg("Server did not understand message.", symmetricKey);
 		}
 	}
 	
+	/*Used for user registration*/
 	public static String addNewUser(String username, String passHash, String userPublicKey, String encryptedUserPrivateKey, UserRepository userRepository, String symmetricKey){
 
 		User u = userRepository.findByUsername(username);
@@ -78,6 +95,7 @@ public class MainController{
 		return enc;
 	}
 	
+	/*used for user login*/
 	public static String login(String username, String enteredPassword, UserRepository userRepository, String symmetricKey){
 		User u = userRepository.findByUsername(username);
 		String msg = "";
@@ -101,16 +119,15 @@ public class MainController{
 		return enc;
 	}
 	
-	@GetMapping(path="/rejectrequest")
-	public @ResponseBody String rejectRequest(String from, String to) {
-		return rejectFriendRequest(from, to, userRelationshipsRepository, userRepository);
-	}
-	
-	public static String rejectFriendRequest(String from, String to, UserRelationshipsRepository userRelationshipsRepository, UserRepository userRepository) {
+	/*used for users to reject a friend request*/
+	public static String rejectFriendRequest(String from, String to, UserRelationshipsRepository userRelationshipsRepository, UserRepository userRepository, String symmetricKey) {
 		//check if the targetUser even exists
 				User k = userRepository.findByUsername(to);
+				String msg = "";
 				if(k == null) {
-					return "usernotexist";
+					msg = "usernotexist";
+					String enc = encryptMsg(msg, symmetricKey);
+					return enc;
 				}
 				
 				//find a relationship between fromUser and toUser, if it exists
@@ -127,19 +144,19 @@ public class MainController{
 					
 					userRelationshipsRepository.save(existingRln);
 					userRelationshipsRepository.save(targetRln);
-					return "rejectedfriends";
+					msg = "rejectedfriends";
+					String enc = encryptMsg(msg, symmetricKey);
+					return enc;
 				}
 				
 				//There was not any existing relationship
-				return "notFound";
+				msg = "notFound";
+				String enc = encryptMsg(msg, symmetricKey);
+				return enc;
 	}
 	
-	@GetMapping(path="/getfriends")
-	public @ResponseBody String getFriends(String username) {
-		return getFriendships(username, userRelationshipsRepository);
-	}
-	
-	public static String getFriendships(String username, UserRelationshipsRepository userRelationshipsRepository) {
+	/*used for users to get their friends list*/
+	public static String getFriendships(String username, UserRelationshipsRepository userRelationshipsRepository, String symmetricKey) {
 		//get list of all of source's relationships
 		List<UserRelationships> u = userRelationshipsRepository.findByFromUsername(username);
 		
@@ -166,15 +183,12 @@ public class MainController{
 			res = res.substring(0, res.length() - 1);
 		}
 		
-		return res;	
+		String enc = encryptMsg(res, symmetricKey);
+		return enc;
 	}
 	
-	@GetMapping(path="/getrequests")
-	public @ResponseBody String getRequests(String username) {
-		return getFriendRequests(username, userRelationshipsRepository);
-	}
-	
-	public static String getFriendRequests(String username, UserRelationshipsRepository userRelationshipsRepository) {
+	/*used for users to get the list of friend requests to them*/
+	public static String getFriendRequests(String username, UserRelationshipsRepository userRelationshipsRepository, String symmetricKey) {
 		//get list of all of source's relationships
 		List<UserRelationships> u = userRelationshipsRepository.findByFromUsername(username);
 		
@@ -191,17 +205,20 @@ public class MainController{
 			}
 		}
 		
-		String res = "";
+		String msg = "";
 		if(friendRequests.size() == 0) {
-			res = "noRequests";
+			msg = "noRequests";
+			String enc = encryptMsg(msg, symmetricKey);
+			return enc;
 		} else {
 			for(int i = 0; i < friendRequests.size(); i++) {
-				res = res + friendRequests.get(i) + "?";
+				msg = msg + friendRequests.get(i) + "?";
 			}
-			res = res.substring(0, res.length() - 1);
+			msg = msg.substring(0, msg.length() - 1);
 		}
 		
-		return res;	
+		String enc = encryptMsg(msg, symmetricKey);
+		return enc;
 	}
 	
 	private static String decryptKey(String encryptedKey) {
@@ -217,40 +234,16 @@ public class MainController{
 		return SymmetricCipher.encrypt(symmetricKey, msg, true);
 	}
 	
-	@GetMapping(path="/addfriend")
-	public @ResponseBody String addFriend(String from, String to, String type) {
-		UserRelationships u = new UserRelationships();
-		u.setFromUsername(from);
-		u.setToUsername(to);
-		u.setRelationshipType(type);
-		
-		UserRelationships u2 = new UserRelationships();
-		u2.setFromUsername(to);
-		u2.setToUsername(from);
-		u2.setRelationshipType(type);
-		//This returns a JSON or XML with the users
-		userRelationshipsRepository.save(u);
-		return "success";
-	}
-	
-	@GetMapping(path="/getNumFriends")
-	public @ResponseBody String getFriends(String from, String to) {
-		List<UserRelationships> u = userRelationshipsRepository.findByFromUsername(from);
-
-		return "" + u.size();
-	}
-	
-	//tester
-	@GetMapping(path="/requestFriend")
-	public @ResponseBody String requestFriends(String from, String to) {
-		return sendFriendRequest(from, to, userRelationshipsRepository, userRepository);
-	}
-	
-	private static String sendFriendRequest(String fromUser, String toUser, UserRelationshipsRepository userRelationshipsRepository, UserRepository userRepository) {
+	/*used for users to send a friend request*/
+	private static String sendFriendRequest(String fromUser, String toUser, UserRelationshipsRepository userRelationshipsRepository, UserRepository userRepository, String symmetricKey) {
 		//check if the targetUser even exists
 		User k = userRepository.findByUsername(toUser);
+		String msg = "";
+		
 		if(k == null) {
-			return "usernotexist";
+			msg = "usernotexist";
+			String enc = encryptMsg(msg, symmetricKey);
+			return enc;
 		}
 		
 		//find a relationship between fromUser and toUser, if it exists
@@ -260,12 +253,16 @@ public class MainController{
 		if(existingRln != null) {
 			//are they already friends?
 			if(existingRln.getRelationshipType().equals(FRIENDS)) {
-				return "alreadyfriends";
+				msg = "alreadyfriends";
+				String enc = encryptMsg(msg, symmetricKey);
+				return enc;
 			} 
 			
 			//have they already sent the target a request?
 			if(existingRln.getRelationshipType().equals(REQUESTED) || existingRln.getRelationshipType().equals(REJECTED)) {
-				return "alreadyrequested";
+				msg = "alreadyrequested";
+				String enc = encryptMsg(msg, symmetricKey);
+				return enc;
 			}
 			
 			//else this user needsToRespond to a pending request from the target, or this user has previously rejected a request from the target
@@ -277,7 +274,9 @@ public class MainController{
 			
 			userRelationshipsRepository.save(existingRln);
 			userRelationshipsRepository.save(targetRln);
-			return "becamefriends";
+			msg = "becamefriends";
+			String enc = encryptMsg(msg, symmetricKey);
+			return enc;
 		}
 		
 		//There was not any existing relationship
@@ -292,7 +291,9 @@ public class MainController{
 		u2.setRelationshipType(NEEDSTORESPOND);
 		userRelationshipsRepository.save(u);
 		userRelationshipsRepository.save(u2);
-		return "sentrequest";
+		msg = "sentrequest";
+		String enc = encryptMsg(msg, symmetricKey);
+		return enc;
 	}
 	
 	private static UserRelationships findRelationship(String source, String target, UserRelationshipsRepository userRelationshipsRepository) {
@@ -315,19 +316,4 @@ public class MainController{
 		
 		return res;
 	}
-
-	/*
-	@GetMapping(path="/all")
-	public @ResponseBody Iterable<User> getAllUsers() {
-		//This returns a JSON or XML with the users
-		return userRepository.findAll();
-	}
-	
-	@GetMapping(path="/get")
-	public @ResponseBody String getByEmail(String username) {
-		//This returns a JSON or XML with the users
-		User u = userRepository.findByUsername(username);
-		return u.getPassHash();
-	}
-	*/
 }

@@ -122,14 +122,15 @@ public class AddFriends extends Fragment {
     }
 
     public static void populateList(final Context c, final View rootView, final AddFriends parent){
-        String url = ServerInfo.IP + "/demo/getrequests?username=" + SaveSharedPreference.getUsername(c);
+        String serverMsg = "getrequests?" + SaveSharedPreference.getUsername(c);
+        final String symmetricKey = SymmetricCipher.generateRandomKey();
+        String url = URLEncoder.generateEncryptedURL(serverMsg, symmetricKey);
         System.out.println(url);
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
             @Override
             public void onResponse(String res) {
 
-                //String response = SymmetricCipher.decrypt(symmetricKey, res, true);
-                String response = res;
+                String response = SymmetricCipher.decrypt(symmetricKey, res, true);
 
                 if(response.equals("noRequests")){
                     ProgressBar pb = (ProgressBar) rootView.findViewById(R.id.getFriendsProgress);
@@ -158,12 +159,14 @@ public class AddFriends extends Fragment {
 
     public static void sendFriendRequest(String fromUser, final String toUser, final EditText userSearch, final TextView tv_error, final Context c){
 
-        String url = ServerInfo.IP + "/demo/requestFriend?from=" + fromUser + "&to=" + toUser;
+        String serverMsg = "requestfriend?" + fromUser + "?" + toUser;
+        final String symmetricKey = SymmetricCipher.generateRandomKey();
+        String url = URLEncoder.generateEncryptedURL(serverMsg, symmetricKey);
         System.out.println(url);
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
             @Override
-            public void onResponse(String response) {
-                //Display the first 500 characters of the response string
+            public void onResponse(String res) {
+                String response = SymmetricCipher.decrypt(symmetricKey, res, true);
                 if(response.equals("usernotexist")){
                     tv_error.setText("Specified user not found!");
                 } else if(response.equals("alreadyfriends")){

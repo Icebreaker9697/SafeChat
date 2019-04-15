@@ -73,12 +73,14 @@ public class CustomFriendRequestListAdapter extends ArrayAdapter<String>{
 
     public static void sendFriendAccept(String fromUser, final String toUser, final Context c, final AddFriends parentActivity, final View rootView){
 
-        String url = ServerInfo.IP + "/demo/requestFriend?from=" + fromUser + "&to=" + toUser;
+        String serverMsg = "requestfriend?" + fromUser + "?" + toUser;
+        final String symmetricKey = SymmetricCipher.generateRandomKey();
+        String url = URLEncoder.generateEncryptedURL(serverMsg, symmetricKey);
         System.out.println(url);
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
             @Override
-            public void onResponse(String response) {
-                //Display the first 500 characters of the response string
+            public void onResponse(String res) {
+                String response = SymmetricCipher.decrypt(symmetricKey, res, true);
                 if(response.equals("usernotexist")){
                     /*do nothing*/
                 } else if(response.equals("notFound")){
@@ -103,12 +105,14 @@ public class CustomFriendRequestListAdapter extends ArrayAdapter<String>{
 
     public static void sendFriendReject(String fromUser, final String toUser, final Context c, final AddFriends parentActivity, final View rootView){
 
-        String url = ServerInfo.IP + "/demo/rejectrequest?from=" + fromUser + "&to=" + toUser;
+        String serverMsg = "rejectrequest?" + fromUser + "?" + toUser;
+        final String symmetricKey = SymmetricCipher.generateRandomKey();
+        String url = URLEncoder.generateEncryptedURL(serverMsg, symmetricKey);
         System.out.println(url);
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
             @Override
-            public void onResponse(String response) {
-                //Display the first 500 characters of the response string
+            public void onResponse(String res) {
+                String response = SymmetricCipher.decrypt(symmetricKey, res, true);
                 if(response.equals("usernotexist")){
                     /*do nothing*/
                 } else if(response.equals("notFound")){

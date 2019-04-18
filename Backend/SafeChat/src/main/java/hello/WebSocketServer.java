@@ -1,4 +1,4 @@
-package websocket;
+package hello;
 
 
 import java.io.IOException;
@@ -25,8 +25,6 @@ public class WebSocketServer {
     private static Map<Session, String> sessionUsernameMap = new HashMap<>();
     private static Map<String, Session> usernameSessionMap = new HashMap<>();
     
-    private final Logger logger = LoggerFactory.getLogger(WebSocketServer.class);
-    
     
     
     
@@ -35,7 +33,7 @@ public class WebSocketServer {
     	      Session session, 
     	      @PathParam("username") String username) throws IOException 
     {
-        logger.info("Entered into Open");
+        System.out.println("Entered into Open");
         
         sessionUsernameMap.put(session, username);
         usernameSessionMap.put(username, session);
@@ -52,7 +50,7 @@ public class WebSocketServer {
     public void onMessage(Session session, String message) throws IOException 
     {
         // Handle new messages
-    	logger.info("Entered into Message: Got Message:"+message);
+    	System.out.print("Entered into Message: Got Message:"+message);
     	String username = sessionUsernameMap.get(session);
     	
     	if (message.startsWith("@")) 
@@ -70,7 +68,7 @@ public class WebSocketServer {
     @OnClose
     public void onClose(Session session) throws IOException
     {
-    	logger.info("Entered into Close");
+    	System.out.print("Entered into Close");
     	
     	String username = sessionUsernameMap.get(session);
     	sessionUsernameMap.remove(session);
@@ -84,7 +82,7 @@ public class WebSocketServer {
     public void onError(Session session, Throwable throwable) 
     {
         // Do error handling here
-    	logger.info("Entered into Error");
+    	System.out.print("Entered into Error");
     }
     
     
@@ -101,7 +99,7 @@ public class WebSocketServer {
     	try {
     		usernameSessionMap.get(username).getBasicRemote().sendText(message);
         } catch (IOException e) {
-        	logger.info("Exception: " + e.getMessage().toString());
+        	System.out.print("Exception: " + e.getMessage().toString());
             e.printStackTrace();
         }
     }

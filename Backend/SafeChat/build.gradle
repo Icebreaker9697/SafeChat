@@ -26,12 +26,18 @@ targetCompatibility = 1.8
 
 dependencies {
     compile("org.springframework.boot:spring-boot-starter-web")
+    
+    compile("org.springframework.boot:spring-boot-starter-websocket")
+    
+    
 
     // JPA Data (We are going to use Repositories, Entities, Hibernate, etc...)
     compile 'org.springframework.boot:spring-boot-starter-data-jpa'
 
     // Use MySQL Connector-J
     compile 'mysql:mysql-connector-java'
+    
+    
     
     // https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk15on
 	compile group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: '1.61'

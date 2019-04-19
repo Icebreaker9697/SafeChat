@@ -2,8 +2,13 @@ package hello;
 
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 
 import javax.websocket.OnClose;
 import javax.websocket.OnError;
@@ -25,7 +30,7 @@ public class WebSocketServer {
     private static Map<Session, String> sessionUsernameMap = new HashMap<>();
     private static Map<String, Session> usernameSessionMap = new HashMap<>();
     
-    
+    private static Map<String, List<String>> conversationHistory = new HashMap<>();
     
     
     @OnOpen
@@ -33,13 +38,27 @@ public class WebSocketServer {
     	      Session session, 
     	      @PathParam("username") String username) throws IOException 
     {
-        System.out.println("Entered into Open");
+        System.out.println("Entered into Open\n");
+        String[] parts = username.split("\\$");
+        String uname = parts[0];
+        String othername = parts[1];
+        String key = "";
+        if(uname.compareTo(othername) <= 0) {
+        	key = uname + "?" + othername;
+        } else {
+        	key = othername + "?" + uname;
+        }
         
-        sessionUsernameMap.put(session, username);
-        usernameSessionMap.put(username, session);
+        sessionUsernameMap.put(session, uname);
+        usernameSessionMap.put(uname, session);
         
-        String message="User:" + username + " has Joined the Chat";
-        	broadcast(message);
+        List<String> q = conversationHistory.get(key);
+        if(q != null) {
+        	for(int i = 0; i < q.size(); i++){
+        		String msg = q.get(i);
+        		sendMessageToPArticularUser(uname, msg);
+        	}
+        }
 		
     }
  
@@ -50,18 +69,38 @@ public class WebSocketServer {
     public void onMessage(Session session, String message) throws IOException 
     {
         // Handle new messages
-    	System.out.print("Entered into Message: Got Message:"+message);
     	String username = sessionUsernameMap.get(session);
     	
     	if (message.startsWith("@")) 
     	{
     		String destUsername = message.split(" ")[0].substring(1); // don't do this in your code!
-    		sendMessageToPArticularUser(destUsername, "[DM] " + username + ": " + message);
-    		sendMessageToPArticularUser(username, "[DM] " + username + ": " + message);
+    		String tmp = "@" + destUsername;
+    		String msg = message.substring(message.indexOf(tmp)  + tmp.length(), message.length());
+    		msg = msg.trim();
+    		
+    		String key;
+            if(username.compareTo(destUsername) <= 0) {
+            	key = username + "?" + destUsername;
+            } else {
+            	key = destUsername + "?" + username;
+            }
+            
+    		List<String> history = conversationHistory.get(key);
+    		if(history != null) {
+    			history.add(username + ": " + msg);
+    			conversationHistory.put(key, history);
+    		} else {
+    			List<String> q = new LinkedList<>();
+    			q.add(username + ": " + msg);
+    			conversationHistory.put(key, q);
+    		}
+    		
+    		sendMessageToPArticularUser(destUsername, username + ": " + msg);
+    		sendMessageToPArticularUser(username, username + ": " + msg);
     	}
     	else // Message to whole chat
     	{
-	    	broadcast(username + ": " + message);
+	    	//do nothing
     	}
     }
  
@@ -75,7 +114,7 @@ public class WebSocketServer {
     	usernameSessionMap.remove(username);
         
     	String message= username + " disconnected";
-        broadcast(message);
+        System.out.print(message);
     }
  
     @OnError
@@ -94,14 +133,21 @@ public class WebSocketServer {
      * @param username The user you want to send message to 
      * @param message The message you want to send
      **/
-	private void sendMessageToPArticularUser(String username, String message) 
+	private boolean sendMessageToPArticularUser(String username, String message) 
     {	
-    	try {
-    		usernameSessionMap.get(username).getBasicRemote().sendText(message);
-        } catch (IOException e) {
-        	System.out.print("Exception: " + e.getMessage().toString());
-            e.printStackTrace();
-        }
+		if(usernameSessionMap.get(username) != null) {
+			try {
+				usernameSessionMap.get(username).getBasicRemote().sendText(message);
+				return true;
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				return false;
+			}
+		} else {
+			//it doesnt matter if code reaches here.
+			return false;
+		}
     }
     
 	

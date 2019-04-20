@@ -27,4 +27,11 @@ public class URLEncoder {
         String url = ServerInfo.IP + "/demo/enc?payloadCipher=" + encryptedMsg  + "&encryptedKey=" + encryptedSymmetricKey;
         return url;
     }
+
+    public static String generateEncryptedMsg(String serverMsg, String symmetricKey, String publicKey){
+        String encryptedMsg = SymmetricCipher.encrypt(symmetricKey, serverMsg, true);
+        String encryptedSymmetricKey = encryptWithPublic(publicKey, symmetricKey);
+        String msg = encryptedMsg + "%" + encryptedSymmetricKey;
+        return msg;
+    }
 }

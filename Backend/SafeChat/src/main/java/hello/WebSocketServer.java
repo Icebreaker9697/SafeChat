@@ -59,7 +59,7 @@ public class WebSocketServer {
         if(q != null) {
         	for(int i = 0; i < q.size(); i++){
         		String msgs = q.get(i);
-        		String[] tmpParts= msgs.split("\\$");
+        		String[] tmpParts = msgs.split("\\$");
         		String msg;
         		if(isFirst) {
         			msg = tmpParts[0];
@@ -96,21 +96,24 @@ public class WebSocketServer {
     		String msgToSave;
             if(username.compareTo(destUsername) <= 0) {
             	key = username + "?" + destUsername;
-            	msgToSave = forSender + "$" + forDest;
+            	msgToSave = username + ": " + forSender + "$" + username + ": " + forDest;
             } else {
             	key = destUsername + "?" + username;
-            	msgToSave = forDest + "$" + forSender;
+            	msgToSave = username + ": " + forDest + "$" + username + ": " + forSender;
             }
             
     		List<String> history = conversationHistory.get(key);
     		if(history != null) {
-    			history.add(username + ": " + msgToSave);
+    			history.add(msgToSave);
     			conversationHistory.put(key, history);
     		} else {
     			List<String> q = new LinkedList<>();
-    			q.add(username + ": " + msgToSave);
+    			q.add(msgToSave);
     			conversationHistory.put(key, q);
     		}
+    		
+    		System.out.println("Sending to " + destUsername + ": " + forDest);
+    		System.out.println("Sending to " + username + ": " + forSender);
     		
     		sendMessageToPArticularUser(destUsername, username + ": " + forDest);
     		sendMessageToPArticularUser(username, username + ": " + forSender);

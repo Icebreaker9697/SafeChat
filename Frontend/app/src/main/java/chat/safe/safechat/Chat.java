@@ -28,6 +28,9 @@ public class Chat extends AppCompatActivity {
     private String curUser;
     private String curConvo;
     private String destUser;
+    private String curUserPublicKey;
+    private String destUserPublicKey;
+    private String curUserPrivateKey;
     ArrayList<String> conversation;
     ConverstationHistoryListAdapter adapter;
     Button bn_send;
@@ -41,6 +44,9 @@ public class Chat extends AppCompatActivity {
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
         destUser = getIntent().getStringExtra("USERTOCHAT");
         curUser = SaveSharedPreference.getUsername(getApplicationContext());
+        curUserPublicKey = SaveSharedPreference.getPublicKey(getApplicationContext());
+        destUserPublicKey = getIntent().getStringExtra("DESTPUBLICKEY");
+        curUserPrivateKey = SaveSharedPreference.getPrivateKey(getApplicationContext());
         curConvo = curUser + "$" + destUser;
         conversation = new ArrayList<>();
         connectWebSocket();
@@ -64,7 +70,12 @@ public class Chat extends AppCompatActivity {
                 msg_to_send.setText("");
 
                 if(msg != null && !msg.equals("")){
-                    msg = msg + "(encrypted with " + curUser + "'s public key)$" + msg + "(encrypted with " + destUser + "'s public key)";
+                    String symmetricKey = SymmetricCipher.generateRandomKey();
+
+                    String encWithCurUserPublicKey = URLEncoder.generateEncryptedMsg(msg, symmetricKey, curUserPublicKey);
+                    String encWithDestUserPublicKey = URLEncoder.generateEncryptedMsg(msg, symmetricKey, destUserPublicKey);
+                    //msg = msg + "(encrypted with " + curUser + "'s public key)$" + msg + "(encrypted with " + destUser + "'s public key)";
+                    msg = encWithCurUserPublicKey + "$" + encWithDestUserPublicKey;
                     cc.send("@" + destUser + " " + msg);
                 }
             }
@@ -102,8 +113,29 @@ public class Chat extends AppCompatActivity {
 
                         @Override
                         public void run() {
+                            String takenoff = "";
+                            String tm1 = curUser + ": ";
+                            String msg = message;
+                            if(message.indexOf(tm1) != -1) {
+                                msg = message.substring(message.indexOf(tm1) + tm1.length(), message.length());
+                                takenoff = tm1;
+                            }
 
-                            conversation.add(message);
+                            String tm2 = destUser + ": ";
+                            if(message.indexOf(tm2) != -1) {
+                                msg = message.substring(message.indexOf(tm2) + tm2.length(), message.length());
+                                takenoff = tm2;
+                            }
+
+                            String[] parts = msg.split("%");
+                            String payloadCipher = parts[0];
+                            String encryptedKey = parts[1];
+                            String symmetricKey = RSACipher.decryptWithPrivate(curUserPrivateKey, encryptedKey);
+                            String plainTextMessage = SymmetricCipher.decrypt(symmetricKey, payloadCipher, true);
+
+                            plainTextMessage = takenoff + plainTextMessage;
+
+                            conversation.add(plainTextMessage);
                             adapter.notifyDataSetChanged();
                             lvData.setSelection(adapter.getCount() - 1);
                         }

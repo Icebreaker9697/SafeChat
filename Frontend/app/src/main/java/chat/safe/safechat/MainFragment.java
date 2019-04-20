@@ -19,6 +19,8 @@ import com.android.volley.toolbox.StringRequest;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 
 /**
@@ -39,7 +41,8 @@ public class MainFragment extends Fragment {
     private String mParam1;
     private String mParam2;
 
-    static ArrayList<String> friends = new ArrayList<String>();
+    ArrayList<String> friends = new ArrayList<String>();
+    Map<String, String> friendsPublicKeys = new HashMap<>();
 
     private OnFragmentInteractionListener mListener;
 
@@ -80,12 +83,12 @@ public class MainFragment extends Fragment {
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
-        populateList(getActivity().getApplicationContext(), rootView);
+        populateList(getActivity().getApplicationContext(), rootView, friends, friendsPublicKeys);
 
         return rootView;
     }
 
-    public static void populateList(final Context c, final View rootView){
+    public static void populateList(final Context c, final View rootView, final ArrayList<String> friends, final Map<String, String> friendsPublicKeys){
         String serverMsg = "getfriends?" + SaveSharedPreference.getUsername(c);
         final String symmetricKey = SymmetricCipher.generateRandomKey();
         String url = URLEncoder.generateEncryptedURL(serverMsg, symmetricKey);
@@ -103,11 +106,19 @@ public class MainFragment extends Fragment {
                     noRequests.setVisibility(View.VISIBLE);
                 } else {
                     String[] tmp = response.split("\\?");
-                    friends = new ArrayList<>(Arrays.asList(tmp));
+                    for(int i = 0; i < tmp.length; i++){
+                        String chunk = tmp[i];
+                        String[] parts = chunk.split("\\$");
+                        String friendName = parts[0];
+                        String friendPublicKey = parts[1];
+                        friends.add(friendName);
+                        friendsPublicKeys.put(friendName, friendPublicKey);
+                    }
+
                     ProgressBar pb = (ProgressBar) rootView.findViewById(R.id.pb_friends);
                     pb.setVisibility(View.GONE);
                     ListView lvData = (ListView) rootView.findViewById(R.id.lv_friends);
-                    lvData.setAdapter(new CustomFriendListAdapter(c, friends));
+                    lvData.setAdapter(new CustomFriendListAdapter(c, friends, friendsPublicKeys));
                     lvData.setVisibility(View.VISIBLE);
                 }
             }

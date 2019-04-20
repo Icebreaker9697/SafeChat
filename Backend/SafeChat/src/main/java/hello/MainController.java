@@ -64,7 +64,7 @@ public class MainController{
 				return rejectFriendRequest(fromUser, toUser, userRelationshipsRepository, userRepository, symmetricKey);
 			case "getfriends":
 				username = msg[1];
-				return getFriendships(username, userRelationshipsRepository, symmetricKey);
+				return getFriendships(username, userRelationshipsRepository, symmetricKey, userRepository);
 				
 			default: return encryptMsg("Server did not understand message.", symmetricKey);
 		}
@@ -156,7 +156,7 @@ public class MainController{
 	}
 	
 	/*used for users to get their friends list*/
-	public static String getFriendships(String username, UserRelationshipsRepository userRelationshipsRepository, String symmetricKey) {
+	public static String getFriendships(String username, UserRelationshipsRepository userRelationshipsRepository, String symmetricKey, UserRepository userRepository) {
 		//get list of all of source's relationships
 		List<UserRelationships> u = userRelationshipsRepository.findByFromUsername(username);
 		
@@ -168,7 +168,10 @@ public class MainController{
 			for(int i = 0; i < u.size(); i++) {
 				UserRelationships tmpRelationship = u.get(i);
 				if(tmpRelationship.getRelationshipType().equals(FRIENDS)) {
-					friendRequests.add(tmpRelationship.getToUsername());
+					String toUser = tmpRelationship.getToUsername();
+					User tmpU = userRepository.findByUsername(toUser);
+					String toUserPublicKey = tmpU.getUserPublicKey();
+					friendRequests.add(toUser + "$" + toUserPublicKey);
 				}
 			}
 		}

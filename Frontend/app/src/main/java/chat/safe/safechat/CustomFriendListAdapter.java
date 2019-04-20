@@ -18,6 +18,7 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 
 import java.util.ArrayList;
+import java.util.Map;
 
 /**
  * Created by Peter on 4/9/19.
@@ -26,10 +27,12 @@ import java.util.ArrayList;
 public class CustomFriendListAdapter extends ArrayAdapter<String>{
 
     private Context c;
+    private Map<String, String> friendsPublicKeys;
 
-    public CustomFriendListAdapter(@NonNull Context context, ArrayList<String> requests) {
+    public CustomFriendListAdapter(@NonNull Context context, ArrayList<String> requests, Map<String, String> friendsPublicKeys) {
         super(context, R.layout.friend_list_item, requests);
         c = context;
+        this.friendsPublicKeys = friendsPublicKeys;
     }
 
     @NonNull
@@ -49,6 +52,7 @@ public class CustomFriendListAdapter extends ArrayAdapter<String>{
                 String user = singleFriend;
                 Intent intent = new Intent(c, Chat.class);
                 intent.putExtra("USERTOCHAT", user);
+                intent.putExtra("DESTPUBLICKEY", friendsPublicKeys.get(user));
                 c.startActivity(intent);
             }
         });

@@ -64,6 +64,7 @@ public class Chat extends AppCompatActivity {
                 msg_to_send.setText("");
 
                 if(msg != null && !msg.equals("")){
+                    msg = msg + "(encrypted with " + curUser + "'s public key)$" + msg + "(encrypted with " + destUser + "'s public key)";
                     cc.send("@" + destUser + " " + msg);
                 }
             }

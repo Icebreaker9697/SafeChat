@@ -43,10 +43,13 @@ public class WebSocketServer {
         String uname = parts[0];
         String othername = parts[1];
         String key = "";
+        boolean isFirst = false;
         if(uname.compareTo(othername) <= 0) {
         	key = uname + "?" + othername;
+        	isFirst = true;
         } else {
         	key = othername + "?" + uname;
+        	isFirst = false;
         }
         
         sessionUsernameMap.put(session, uname);
@@ -55,7 +58,14 @@ public class WebSocketServer {
         List<String> q = conversationHistory.get(key);
         if(q != null) {
         	for(int i = 0; i < q.size(); i++){
-        		String msg = q.get(i);
+        		String msgs = q.get(i);
+        		String[] tmpParts= msgs.split("\\$");
+        		String msg;
+        		if(isFirst) {
+        			msg = tmpParts[0];
+        		} else {
+        			msg = tmpParts[1];
+        		}
         		sendMessageToPArticularUser(uname, msg);
         	}
         }
@@ -78,25 +88,32 @@ public class WebSocketServer {
     		String msg = message.substring(message.indexOf(tmp)  + tmp.length(), message.length());
     		msg = msg.trim();
     		
+    		String[] parts = msg.split("\\$");
+    		String forSender = parts[0];
+    		String forDest = parts[1];
+    		
     		String key;
+    		String msgToSave;
             if(username.compareTo(destUsername) <= 0) {
             	key = username + "?" + destUsername;
+            	msgToSave = forSender + "$" + forDest;
             } else {
             	key = destUsername + "?" + username;
+            	msgToSave = forDest + "$" + forSender;
             }
             
     		List<String> history = conversationHistory.get(key);
     		if(history != null) {
-    			history.add(username + ": " + msg);
+    			history.add(username + ": " + msgToSave);
     			conversationHistory.put(key, history);
     		} else {
     			List<String> q = new LinkedList<>();
-    			q.add(username + ": " + msg);
+    			q.add(username + ": " + msgToSave);
     			conversationHistory.put(key, q);
     		}
     		
-    		sendMessageToPArticularUser(destUsername, username + ": " + msg);
-    		sendMessageToPArticularUser(username, username + ": " + msg);
+    		sendMessageToPArticularUser(destUsername, username + ": " + forDest);
+    		sendMessageToPArticularUser(username, username + ": " + forSender);
     	}
     	else // Message to whole chat
     	{
